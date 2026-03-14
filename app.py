@@ -665,7 +665,7 @@ elif page == pages[3]:
         st.plotly_chart(fig, use_container_width=True)
 
     # ── Confusion matrix (RF) ──────────────────────────────────────────────
-    section("Confusion Matrix — Random Forest")
+    section("Confusion Matrix & Feature Importance — Random Forest")
     c1, c2 = st.columns([1, 2])
     with c1:
         cm = confusion_matrix(y_test, y_pred_rf)
@@ -673,22 +673,25 @@ elif page == pages[3]:
         fig = px.imshow(cm, text_auto=True, aspect="auto",
                         x=labels, y=labels,
                         color_continuous_scale=PURPLE_SEQ,
-                        title="Confusion Matrix",
+                        title="Confusion Matrix — Random Forest",
                         labels=dict(x="Predicted", y="Actual"))
         fig.update_coloraxes(showscale=False)
+        fig.update_traces(textfont=dict(size=18, color="#FFFFFF"))
         apply_theme(fig)
         st.plotly_chart(fig, use_container_width=True)
         insight("The Random Forest confusion matrix shows strong performance in correctly classifying both Free and Premium users. False negatives (missed Premium predictions) are more costly for the business as they represent unrealised revenue — further hyperparameter tuning could reduce this class-specific error.")
 
-    # ── Feature importance ─────────────────────────────────────────────────
-    section("Random Forest — Feature Importance")
     with c2:
         fi_df = pd.DataFrame({"Feature": FEATURES, "Importance": rf.feature_importances_})
         fi_df = fi_df.sort_values("Importance", ascending=True)
         fig = px.bar(fi_df, x="Importance", y="Feature", orientation="h",
                      color="Importance", color_continuous_scale=TEAL_SEQ,
-                     title="Feature Importance (Random Forest)")
+                     title="Feature Importance — Random Forest")
         fig.update_coloraxes(showscale=False)
+        fig.update_traces(
+            texttemplate="%{x:.3f}", textposition="outside",
+            textfont=dict(color="#FFFFFF", size=11),
+        )
         apply_theme(fig)
         st.plotly_chart(fig, use_container_width=True)
         insight("User_Satisfaction and Streak_Days emerge as the top predictors of premium subscription, implying that users who are already engaged and satisfied are most likely to upgrade. This validates a product strategy of maximising free-tier satisfaction first — a happy free user is the best premium conversion candidate.")
@@ -732,8 +735,28 @@ elif page == pages[4]:
         fig = px.pie(persona_counts, names="Persona", values="Count",
                      color="Persona", color_discrete_map=PERSONA_COLORS,
                      title="Cluster Size Distribution", hole=0.42)
-        fig.update_traces(textposition="outside", textinfo="percent+label",
-                          marker=dict(line=dict(color="#1E1B2E", width=2)))
+        fig.update_traces(
+            textposition="inside",
+            textinfo="percent+label",
+            insidetextorientation="radial",
+            textfont=dict(size=13, color="#FFFFFF"),
+            marker=dict(line=dict(color="#1E1B2E", width=3)),
+        )
+        fig.update_layout(
+            margin=dict(t=60, b=80, l=60, r=60),
+            showlegend=True,
+            legend=dict(
+                bgcolor="rgba(30,27,46,0.92)",
+                bordercolor="rgba(195,166,232,0.4)",
+                borderwidth=1,
+                font=dict(color="#FFFFFF", size=12),
+                orientation="h",
+                yanchor="bottom",
+                y=-0.22,
+                xanchor="center",
+                x=0.5,
+            ),
+        )
         apply_theme(fig)
         st.plotly_chart(fig, use_container_width=True)
         insight("The three personas are reasonably balanced, suggesting the clustering has found genuinely distinct user segments rather than a single dominant group. Each persona represents a different engagement archetype, enabling targeted product features and personalised content strategies.")
@@ -882,11 +905,42 @@ elif page == pages[6]:
     c1, c2 = st.columns(2)
 
     with c1:
-        st.markdown("<div class='model-card'>", unsafe_allow_html=True)
-        st.markdown("**Performance Metrics**")
-        for k, v in mood_metrics.items():
-            st.metric(k, v)
-        st.markdown("</div>", unsafe_allow_html=True)
+        r2_v  = mood_metrics["R²"]
+        mae_v = mood_metrics["MAE"]
+        rmse_v= mood_metrics["RMSE"]
+        st.markdown(f"""
+        <div style='background:linear-gradient(135deg,rgba(123,79,191,0.30) 0%,rgba(26,188,156,0.15) 100%);
+                    border:1px solid rgba(195,166,232,0.5); border-radius:16px; padding:24px 22px;'>
+            <div style='color:#C3A6E8; font-size:0.8rem; text-transform:uppercase;
+                        letter-spacing:1px; font-weight:700; margin-bottom:18px;'>
+                📐 Performance Metrics — Mood Score Model
+            </div>
+            <div style='display:flex; flex-direction:column; gap:12px;'>
+                <div style='background:rgba(123,79,191,0.2); border:1px solid rgba(123,79,191,0.4);
+                            border-radius:10px; padding:14px 18px;'>
+                    <div style='color:#A78BFA; font-size:0.72rem; text-transform:uppercase;
+                                letter-spacing:1px; margin-bottom:4px;'>R² Score</div>
+                    <div style='color:#FFFFFF; font-size:1.9rem; font-weight:700;'>{r2_v}</div>
+                    <div style='color:#9CA3AF; font-size:0.72rem; margin-top:2px;'>Variance explained</div>
+                </div>
+                <div style='background:rgba(26,188,156,0.15); border:1px solid rgba(26,188,156,0.35);
+                            border-radius:10px; padding:14px 18px;'>
+                    <div style='color:#5EEAD4; font-size:0.72rem; text-transform:uppercase;
+                                letter-spacing:1px; margin-bottom:4px;'>MAE</div>
+                    <div style='color:#FFFFFF; font-size:1.9rem; font-weight:700;'>{mae_v}</div>
+                    <div style='color:#9CA3AF; font-size:0.72rem; margin-top:2px;'>Mean absolute error</div>
+                </div>
+                <div style='background:rgba(243,156,18,0.12); border:1px solid rgba(243,156,18,0.35);
+                            border-radius:10px; padding:14px 18px;'>
+                    <div style='color:#FCD34D; font-size:0.72rem; text-transform:uppercase;
+                                letter-spacing:1px; margin-bottom:4px;'>RMSE</div>
+                    <div style='color:#FFFFFF; font-size:1.9rem; font-weight:700;'>{rmse_v}</div>
+                    <div style='color:#9CA3AF; font-size:0.72rem; margin-top:2px;'>Root mean squared error</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
         insight("The Mood Score model achieves a strong R² — indicating that daily affirmations, meditation, and sleep quality collectively explain a large portion of mood variance. Stress_Level_After has the most negative coefficient, confirming that reducing residual stress is the single most impactful lever for improving user mood.")
 
     with c2:
@@ -923,11 +977,42 @@ elif page == pages[6]:
     c1, c2 = st.columns(2)
 
     with c1:
-        st.markdown("<div class='model-card'>", unsafe_allow_html=True)
-        st.markdown("**Performance Metrics**")
-        for k, v in stress_metrics.items():
-            st.metric(k, v)
-        st.markdown("</div>", unsafe_allow_html=True)
+        r2_v  = stress_metrics["R²"]
+        mae_v = stress_metrics["MAE"]
+        rmse_v= stress_metrics["RMSE"]
+        st.markdown(f"""
+        <div style='background:linear-gradient(135deg,rgba(26,188,156,0.22) 0%,rgba(123,79,191,0.15) 100%);
+                    border:1px solid rgba(26,188,156,0.45); border-radius:16px; padding:24px 22px;'>
+            <div style='color:#5EEAD4; font-size:0.8rem; text-transform:uppercase;
+                        letter-spacing:1px; font-weight:700; margin-bottom:18px;'>
+                📐 Performance Metrics — Stress Reduction Model
+            </div>
+            <div style='display:flex; flex-direction:column; gap:12px;'>
+                <div style='background:rgba(26,188,156,0.15); border:1px solid rgba(26,188,156,0.35);
+                            border-radius:10px; padding:14px 18px;'>
+                    <div style='color:#5EEAD4; font-size:0.72rem; text-transform:uppercase;
+                                letter-spacing:1px; margin-bottom:4px;'>R² Score</div>
+                    <div style='color:#FFFFFF; font-size:1.9rem; font-weight:700;'>{r2_v}</div>
+                    <div style='color:#9CA3AF; font-size:0.72rem; margin-top:2px;'>Variance explained</div>
+                </div>
+                <div style='background:rgba(123,79,191,0.2); border:1px solid rgba(123,79,191,0.4);
+                            border-radius:10px; padding:14px 18px;'>
+                    <div style='color:#A78BFA; font-size:0.72rem; text-transform:uppercase;
+                                letter-spacing:1px; margin-bottom:4px;'>MAE</div>
+                    <div style='color:#FFFFFF; font-size:1.9rem; font-weight:700;'>{mae_v}</div>
+                    <div style='color:#9CA3AF; font-size:0.72rem; margin-top:2px;'>Mean absolute error</div>
+                </div>
+                <div style='background:rgba(231,76,60,0.12); border:1px solid rgba(231,76,60,0.35);
+                            border-radius:10px; padding:14px 18px;'>
+                    <div style='color:#FCA5A5; font-size:0.72rem; text-transform:uppercase;
+                                letter-spacing:1px; margin-bottom:4px;'>RMSE</div>
+                    <div style='color:#FFFFFF; font-size:1.9rem; font-weight:700;'>{rmse_v}</div>
+                    <div style='color:#9CA3AF; font-size:0.72rem; margin-top:2px;'>Root mean squared error</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
         insight("The Stress Reduction model confirms that meditation and yoga are the primary drivers of stress relief, with a positive coefficient indicating each additional minute of practice reliably reduces stress. The model's MAE is low relative to the target scale, meaning predictions are actionable for personalised wellness recommendations.")
 
     with c2:
