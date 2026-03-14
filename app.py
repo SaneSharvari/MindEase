@@ -670,14 +670,40 @@ elif page == pages[3]:
     with c1:
         cm = confusion_matrix(y_test, y_pred_rf)
         labels = ["Free (0)", "Premium (1)"]
-        fig = px.imshow(cm, text_auto=True, aspect="auto",
-                        x=labels, y=labels,
-                        color_continuous_scale=PURPLE_SEQ,
-                        title="Confusion Matrix — Random Forest",
-                        labels=dict(x="Predicted", y="Actual"))
-        fig.update_coloraxes(showscale=False)
-        fig.update_traces(textfont=dict(size=18, color="#FFFFFF"))
-        apply_theme(fig)
+
+        # Custom dark-only colourscale so every cell stays dark enough for white text
+        cm_colorscale = [
+            [0.0, "#2D1B69"],   # near-zero  → deep indigo
+            [0.5, "#6B21A8"],   # mid        → mid purple
+            [1.0, "#1ABC9C"],   # maximum    → teal highlight
+        ]
+
+        annotations = []
+        for i in range(cm.shape[0]):
+            for j in range(cm.shape[1]):
+                annotations.append(dict(
+                    x=labels[j], y=labels[i],
+                    text=f"<b>{cm[i, j]}</b>",
+                    showarrow=False,
+                    font=dict(color="#FFFFFF", size=26, family="Inter, sans-serif"),
+                ))
+
+        fig = go.Figure(data=go.Heatmap(
+            z=cm,
+            x=labels,
+            y=labels,
+            colorscale=cm_colorscale,
+            showscale=False,
+            hovertemplate="Actual: %{y}<br>Predicted: %{x}<br>Count: %{z}<extra></extra>",
+        ))
+        fig.update_layout(
+            title="Confusion Matrix — Random Forest",
+            xaxis=dict(title="Predicted", tickfont=dict(color="#E0E0E0", size=13)),
+            yaxis=dict(title="Actual",    tickfont=dict(color="#E0E0E0", size=13), autorange="reversed"),
+            annotations=annotations,
+            height=370,
+            **PLOTLY_LAYOUT,
+        )
         st.plotly_chart(fig, use_container_width=True)
         insight("The Random Forest confusion matrix shows strong performance in correctly classifying both Free and Premium users. False negatives (missed Premium predictions) are more costly for the business as they represent unrealised revenue — further hyperparameter tuning could reduce this class-specific error.")
 
