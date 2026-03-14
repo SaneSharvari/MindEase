@@ -15,7 +15,7 @@ from sklearn.metrics import (
 from sklearn.cluster import KMeans
 
 # ── Page config ───────────────────────────────────────────────────────────────
-st.set_page_config(page_title="MindfulMe Analytics", layout="wide", page_icon="🧘")
+st.set_page_config(page_title="MindEaseWellness", layout="wide", page_icon="🧘")
 
 # ── Theme colours ─────────────────────────────────────────────────────────────
 PURPLE   = "#7B4FBF"
@@ -32,8 +32,14 @@ PLOTLY_LAYOUT = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
     font=dict(family="Inter, sans-serif", color="#E0E0E0"),
-    title_font=dict(size=16, color="#E0E0E0"),
-    legend=dict(bgcolor="rgba(0,0,0,0)", bordercolor="rgba(255,255,255,0.1)", borderwidth=1),
+    title_font=dict(size=16, color="#FFFFFF"),
+    legend=dict(
+        bgcolor="rgba(30,27,46,0.92)",
+        bordercolor="rgba(195,166,232,0.4)",
+        borderwidth=1,
+        font=dict(color="#FFFFFF", size=12),
+        title_font=dict(color="#C3A6E8"),
+    ),
     margin=dict(t=50, b=40, l=40, r=20),
 )
 
@@ -86,6 +92,32 @@ st.markdown("""
 
     .stDataFrame { border-radius: 12px; overflow: hidden; }
     .stMetric { background: rgba(123,79,191,0.1); border-radius: 12px; padding: 10px; }
+
+    /* Bug fix: expander visibility */
+    [data-testid="stExpander"] {
+        background: rgba(45,27,105,0.35) !important;
+        border: 1px solid rgba(195,166,232,0.45) !important;
+        border-radius: 10px !important;
+    }
+    [data-testid="stExpander"] summary {
+        color: #C3A6E8 !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+    }
+    [data-testid="stExpander"] summary:hover {
+        color: #FFFFFF !important;
+        background: rgba(123,79,191,0.2) !important;
+    }
+    [data-testid="stExpander"] > div > div {
+        color: #E0E0E0 !important;
+    }
+    /* Bug fix: st.caption contrast */
+    [data-testid="stCaptionContainer"] p {
+        color: #A7F3D0 !important;
+        font-size: 0.82rem !important;
+    }
+    /* Bug fix: dataframe text */
+    [data-testid="stDataFrame"] * { color: #E0E0E0 !important; }
 
     div[data-testid="stSelectbox"] > div, div[data-testid="stMultiSelect"] > div {
         background: rgba(45,27,105,0.6) !important;
@@ -156,7 +188,7 @@ with st.sidebar:
     st.markdown("""
     <div style='text-align:center; padding: 10px 0 20px 0;'>
         <div style='font-size:2.8rem;'>🧘</div>
-        <div style='font-size:1.3rem; font-weight:700; color:#C3A6E8;'>MindfulMe</div>
+        <div style='font-size:1.3rem; font-weight:700; color:#C3A6E8;'>MindEaseWellness</div>
         <div style='font-size:0.75rem; color:#7B6FA0; margin-top:2px;'>Analytics Dashboard</div>
     </div>
     """, unsafe_allow_html=True)
@@ -227,8 +259,8 @@ def insight(text: str):
 if page == pages[0]:
     st.markdown("""
     <div class='page-hero'>
-        <h1>🧘 MindfulMe Analytics Dashboard</h1>
-        <p>A comprehensive data-driven exploration of the MindfulMe mental wellness platform — uncovering user behaviour patterns,
+        <h1>🧘 MindEaseWellness Analytics Dashboard</h1>
+        <p>A comprehensive data-driven exploration of the MindEaseWellness mental wellness platform — uncovering user behaviour patterns,
         engagement drivers, and predictive insights across 2,000 synthetic user profiles.</p>
     </div>
     """, unsafe_allow_html=True)
@@ -239,7 +271,7 @@ if page == pages[0]:
     with col1:
         st.markdown("""
         <div style='color:#C9D1D9; line-height:1.8; font-size:0.95rem;'>
-        <b style='color:#C3A6E8;'>MindfulMe</b> is a digital mental wellness mobile application that combines
+        <b style='color:#C3A6E8;'>MindEaseWellness</b> is a digital mental wellness mobile application that combines
         <b>guided meditation</b>, <b>yoga routines</b>, <b>AI-personalised affirmations</b>,
         <b>self-love short-form videos (Reels)</b>, <b>wellness podcasts</b>, and <b>mental wellness audiobooks</b>
         — all in one platform designed to reduce stress, elevate mood, and build sustainable daily habits.<br><br>
@@ -323,7 +355,7 @@ if page == pages[0]:
 # PAGE 2 — EDA & DESCRIPTIVE ANALYTICS
 # ════════════════════════════════════════════════════════════════════════════════
 elif page == pages[1]:
-    st.markdown("<div class='page-hero'><h1>📊 EDA & Descriptive Analytics</h1><p>Exploring user demographics, wellness behaviours, and engagement patterns across the MindfulMe platform.</p></div>", unsafe_allow_html=True)
+    st.markdown("<div class='page-hero'><h1>📊 EDA & Descriptive Analytics</h1><p>Exploring user demographics, wellness behaviours, and engagement patterns across the MindEaseWellness platform.</p></div>", unsafe_allow_html=True)
 
     df = df_filtered.copy()
     n_filtered = len(df)
@@ -357,8 +389,28 @@ elif page == pages[1]:
         fig = px.pie(sub_counts, names="Subscription_Type", values="Count",
                      color_discrete_sequence=[PURPLE, TEAL],
                      title="Subscription Type Distribution", hole=0.45)
-        fig.update_traces(textposition="outside", textinfo="percent+label",
-                          marker=dict(line=dict(color="#1E1B2E", width=2)))
+        fig.update_traces(
+            textposition="inside",
+            textinfo="percent+label",
+            insidetextorientation="radial",
+            textfont=dict(size=14, color="#FFFFFF"),
+            marker=dict(line=dict(color="#1E1B2E", width=3)),
+        )
+        fig.update_layout(
+            margin=dict(t=60, b=60, l=60, r=60),
+            showlegend=True,
+            legend=dict(
+                bgcolor="rgba(30,27,46,0.92)",
+                bordercolor="rgba(195,166,232,0.4)",
+                borderwidth=1,
+                font=dict(color="#FFFFFF", size=13),
+                orientation="h",
+                yanchor="bottom",
+                y=-0.18,
+                xanchor="center",
+                x=0.5,
+            ),
+        )
         apply_theme(fig)
         st.plotly_chart(fig, use_container_width=True)
         insight("Premium users represent a substantial portion of the platform — their higher engagement scores suggest the freemium conversion strategy is attracting the app's most committed wellness seekers. Targeting Free users with personalised upgrade prompts could increase premium conversion significantly.")
@@ -492,9 +544,15 @@ elif page == pages[2]:
         zmin=-1, zmax=1,
         text=np.round(corr.values, 2),
         texttemplate="%{text}",
-        textfont={"size": 9},
+        textfont={"size": 9, "color": "#FFFFFF"},
         hoverongaps=False,
-        colorbar=dict(title="r", tickfont=dict(color="#E0E0E0"), titlefont=dict(color="#E0E0E0")),
+        colorbar=dict(
+            title=dict(text="r", font=dict(color="#E0E0E0", size=13)),
+            tickfont=dict(color="#E0E0E0", size=11),
+            bgcolor="rgba(30,27,46,0.8)",
+            bordercolor="rgba(195,166,232,0.3)",
+            borderwidth=1,
+        ),
     ))
     fig.update_layout(
         title="Pearson Correlation Matrix — All Numerical Variables",
